@@ -48,11 +48,10 @@
       flex-direction: column;
       justify-content:center;
       align-items:center;
-      padding:18px 0 14px;
-      border-bottom:2px solid;
-      border-image: linear-gradient(90deg, transparent, var(--gold-primary), transparent) 1;
-      margin-bottom:18px;
+      padding:14px 0 10px;
+      margin-bottom:12px;
       gap:10px;
+      border-bottom: none;
     }
 
     .logo-container{
@@ -352,8 +351,8 @@
     /* RTL support */
     body.rtl{ direction: rtl; }
     body.rtl header{ text-align: right; }
-    body.rtl .logo-container{ flex-direction: row-reverse; }
-    body.rtl .row-inline{ justify-content: flex-start; }
+    body.rtl .logo-container{ flex-direction: row-reverse; justify-content:center; }
+    
     body.rtl .form-field select{
       background-position: left 15px center;
       padding-left: 50px;
@@ -406,8 +405,8 @@
     /* Keep content readable on very wide screens */
     @media (min-width: 1200px){
       body{
-        padding-top: 24px;
-        padding-bottom: 44px;
+        padding-top: 10px;
+        padding-bottom: 28px;
       }
       .calculator-section{
         padding: 52px;
@@ -432,7 +431,71 @@
       -webkit-backdrop-filter: blur(8px);
     }
 
-  </style>
+  
+    .hidden{ display:none !important; }
+
+    .toggle-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 6px;
+      justify-content: flex-start;
+    }
+    body.rtl .toggle-row{ justify-content: flex-start; } /* still looks fine in RTL */
+    .toggle-btn{
+      appearance:none;
+      border: 1px solid rgba(212,175,55,0.25);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-primary);
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor:pointer;
+      transition: all .2s ease;
+      font-weight: 600;
+    }
+    .toggle-btn:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(212,175,55,0.06);
+    }
+    .toggle-btn.active{
+      background: rgba(212,175,55,0.14);
+      border-color: rgba(212,175,55,0.45);
+      color: var(--gold-light);
+    }
+    .helper{
+      margin-top: 10px;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    details.advanced{
+      grid-column: 1/-1;
+      border: 1px solid rgba(212,175,55,0.20);
+      background: rgba(255,255,255,0.02);
+      border-radius: 18px;
+      padding: 14px 16px;
+    }
+    details.advanced summary{
+      cursor: pointer;
+      list-style: none;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      color: var(--gold-light);
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+    details.advanced summary::-webkit-details-marker{ display:none; }
+    details.advanced summary:after{
+      content: "▾";
+      opacity: .75;
+      transform: translateY(-1px);
+    }
+    details.advanced[open] summary:after{
+      content: "▴";
+    }
+</style>
 
 </head>
 
@@ -441,7 +504,7 @@
     <header>
       
 <div class="logo-container">
-    <img src="1885%20logo.jfif" alt="1885 Logo" class="logo-img" onerror="this.style.display=\'none\';document.getElementById(\'logoFallback\').style.display=\'flex\';">
+    <img src="LOGO.png" alt="1885 Logo" class="logo-img" onerror="this.style.display=\'none\';document.getElementById(\'logoFallback\').style.display=\'flex\';">
     <span style="font-size:28px;color:#D4AF37;font-weight:600;">×</span>
     <span style="font-size:32px;font-weight:700;color:#ffffff;letter-spacing:3px;">NAQSH</span>
 </div>
@@ -514,13 +577,17 @@
 
         <button class="calculate-btn" onclick="calculateWrap()"><span data-i18n="calc_wrap">Calculate Wrap Quote</span></button>
 
+        
         <div class="notice">
-          <b>What this is:</b> Printed <b>NAQSH</b>  on <b>clear PPF film</b> (not colored vinyl).<br/>
-          <b><span data-i18n="lead_time">Lead time (conservative):</span></b> material production/arrival ~ <b>20 days (±)</b> + installation ~ <b>5 days</b> ⇒ approx. <b>25 days total</b> (subject to inspection + scheduling).<br/>
-          <b><span data-i18n="important">Important:</span></b> <span data-i18n="inspection_required">Vehicle <b>inspection is required</b> before confirmation to ensure body/paint condition is suitable (chips, dents, cracks, repainted panels may affect outcome).
+          <b><span data-i18n="what_is_this">What this is:</span></b>
+          <span data-i18n="wrap_desc">Printed <b>NAQSH</b> on <b>clear PPF film</b> (not colored vinyl).</span><br/>
+          <b><span data-i18n="lead_time">Lead time (conservative):</span></b>
+          <span data-i18n="lead_time_text">material production/arrival ~ <b>20 days (±)</b> + installation ~ <b>5 days</b> ⇒ approx. <b>25 days total</b> (subject to inspection + scheduling).</span><br/>
+          <b><span data-i18n="important">Important:</span></b>
+          <span data-i18n="inspection_required">Vehicle <b>inspection is required</b> before confirmation to ensure body/paint condition is suitable (chips, dents, cracks, repainted panels may affect outcome).</span>
         </div>
 
-        <div class="results" id="wrapResults">
+        <div class="results hidden" id="wrapResults">
           <div class="quote-card">
             <div class="quote-top">
               <div>
@@ -549,29 +616,106 @@
       <!-- TAB 2: DECALS -->
       <div class="tab-panel" id="tabDecal">
         <div class="input-group">
-          <div class="form-field">
-            <label><span data-i18n="total_length">Total Length (meters)</span></label>
-            <input id="decalMeters" type="number" min="0.1" step="0.1" placeholder="e.g. 2.5" />
+          <div class="input-group" style="margin-top:8px;">
+            <div class="form-field" style="grid-column:1/-1;">
+              <label><span data-i18n="decal_mode">Decal pricing mode</span></label>
+              <div class="toggle-row" role="tablist" aria-label="Decal mode">
+                <button type="button" class="toggle-btn active" id="decalModeMeters" onclick="setDecalMode('meters')">
+                  <span data-i18n="mode_meters">Quick (meters)</span>
+                </button>
+                <button type="button" class="toggle-btn" id="decalModeSmart" onclick="setDecalMode('smart')">
+                  <span data-i18n="mode_smart">Smart (dimensions)</span>
+                </button>
+              </div>
+              <div class="helper" data-i18n="decal_mode_help">
+                Quick: for stripes / simple runs. Smart: for circles, logos, blocks — we convert dimensions to billable roll meters (with waste + minimum).
+              </div>
+            </div>
+          </div>
+
+          <div class="input-group" id="decalMetersGroup">
+            <div class="form-field">
+              <label><span data-i18n="total_length">Total Length (meters)</span></label>
+              <input type="number" id="decalMeters" min="0" step="0.1" placeholder="e.g. 5.2">
+            </div>
+          </div>
+
+          <div class="input-group hidden" id="decalSmartGroup">
+            <div class="form-field">
+              <label><span data-i18n="roll_width">Roll width</span></label>
+              <select id="decalRollWidth">
+                <option value="1.52" selected>152 cm</option>
+                <option value="1.20">120 cm</option>
+                <option value="0.90">90 cm</option>
+                <option value="0.60">60 cm</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label><span data-i18n="shape">Shape</span></label>
+              <select id="decalShape" onchange="updateDecalShapeFields()">
+                <option value="rectangle" selected data-i18n="shape_rectangle">Rectangle / Block</option>
+                <option value="circle" data-i18n="shape_circle">Circle</option>
+                <option value="stripe" data-i18n="shape_stripe">Stripe</option>
+              </select>
+            </div>
+
+            <div class="form-field" id="shapeWidthField">
+              <label><span data-i18n="width_cm">Width (cm)</span></label>
+              <input type="number" id="decalWidthCm" min="0" step="1" placeholder="e.g. 40">
+            </div>
+
+            <div class="form-field" id="shapeHeightField">
+              <label><span data-i18n="height_cm">Height (cm)</span></label>
+              <input type="number" id="decalHeightCm" min="0" step="1" placeholder="e.g. 60">
+            </div>
+
+            <div class="form-field hidden" id="shapeDiameterField">
+              <label><span data-i18n="diameter_cm">Diameter (cm)</span></label>
+              <input type="number" id="decalDiameterCm" min="0" step="1" placeholder="e.g. 70">
+            </div>
+
+            <div class="form-field">
+              <label><span data-i18n="quantity">Quantity</span></label>
+              <input type="number" id="decalQty" min="1" step="1" value="1">
+            </div>
+
+            <div class="form-field">
+              <label><span data-i18n="waste_allowance">Printing allowance</span></label>
+              <select id="decalWaste">
+                <option value="0.10">10%</option>
+                <option value="0.15" selected>15%</option>
+                <option value="0.20">20%</option>
+              </select>
+            </div>
+
+            <div class="form-field" style="grid-column:1/-1;">
+              <div class="notice" style="margin:0;">
+                <span data-i18n="smart_note">
+                  Smart mode estimates billable roll meters based on the design's bounding box, roll width, and a printing allowance. Final billable meters may vary with layout and cutting.
+                </span>
+              </div>
+            </div>
           </div>
 
           <div class="form-field">
             <label><span data-i18n="make">Make</span></label>
-            <input id="decalMake" type="text" placeholder="e.g. Toyota" />
+            <input id="decalMake" type="text" placeholder="e.g. BMW" />
           </div>
 
           <div class="form-field">
             <label><span data-i18n="model">Model</span></label>
-            <input id="decalModel" type="text" placeholder="e.g. Land Cruiser" />
+            <input id="decalModel" type="text" placeholder="e.g. X5" />
           </div>
 
           <div class="form-field">
             <label><span data-i18n="year">Year</span></label>
-            <input id="decalYear" type="number" min="1990" max="2030" placeholder="e.g. 2021" />
+            <input id="decalYear" type="number" min="1990" max="2030" placeholder="e.g. 2023" />
           </div>
 
           <div class="form-field">
             <label><span data-i18n="car_color">Car Color</span></label>
-            <input id="decalColor" type="text" placeholder="e.g. White" />
+            <input id="decalColor" type="text" placeholder="e.g. Black" />
           </div>
 
           <div class="form-field">
@@ -590,13 +734,17 @@
 
         <button class="calculate-btn" onclick="calculateDecal()"><span data-i18n="calc_decal">Calculate Decal Quote</span></button>
 
+        
         <div class="notice">
-          <b>What this is:</b> A <b>printed sticker / decal</b> (NOT wrap).<br/>
-          <b>Important:</b> This is <b>not PPF</b> and does not have PPF protection properties. <br/>
-          <b>Inspection:</b> Still recommended, but typically less critical than full wrap jobs.
+          <b><span data-i18n="what_is_this">What this is:</span></b>
+          <span data-i18n="decal_desc">A <b>printed sticker / decal</b> (NOT wrap).</span><br/>
+          <b><span data-i18n="important">Important:</span></b>
+          <span data-i18n="not_ppf">This is <b>not PPF</b> and does not have PPF protection properties.</span><br/>
+          <b><span data-i18n="inspection">Inspection:</span></b>
+          <span data-i18n="inspection_decal">Still recommended, but typically less critical than full wrap jobs.</span>
         </div>
 
-        <div class="results" id="decalResults">
+        <div class="results hidden" id="decalResults">
           <div class="quote-card">
             <div class="quote-top">
               <div>
@@ -626,6 +774,7 @@
   </div>
 
   <script>
+
     // WhatsApp number from your existing site
     const WHATSAPP_NUMBER = "971501187630";
 
@@ -666,7 +815,55 @@
         note: "Note:",
         note_text: "For large/complex designs, pricing may be adjusted after design review and installation planning.",
         vat_no: "No (default)",
-        yes: "Yes"
+        yes: "Yes",
+        lead_time_text: "material production/arrival ~ <b>20 days (±)</b> + installation ~ <b>5 days</b> ⇒ approx. <b>25 days total</b> (subject to inspection + scheduling).",
+        ph_make: "e.g. BMW",
+        ph_model: "e.g. X5",
+        ph_year: "e.g. 2023",
+        ph_color: "e.g. Black",
+        ph_wrap_notes: "e.g. NAQSH pattern style, areas to avoid, preferred finish...",
+        ph_meters: "e.g. 2.5",
+        ph_decal_notes: "e.g. Hood stripe, side doors, roof, trunk, small logos...",
+        what_is_this: "What this is:",
+        wrap_desc: "Printed <b>NAQSH</b> on <b>clear PPF film</b> (not colored vinyl).",
+        decal_desc: "A <b>printed sticker / decal</b> (NOT wrap).",
+        not_ppf: "This is <b>not PPF</b> and does not have PPF protection properties.",
+        inspection: "Inspection:",
+        inspection_decal: "Still recommended, but typically less critical than full wrap jobs.",
+        service_label: "Service",
+        vehicle_label: "Vehicle",
+        color_label: "Color",
+        excluded_label: "Excluded",
+        estimated_lead_time: "Estimated Lead Time",
+        lead_time_kv: "≈ 25 days total (20 ± material + 5 install)",
+        required_before_confirmation: "Required before confirmation",
+        wrap_service_value: "Printed NAQSH on clear PPF (full wrap)",
+        wrap_service_value_wa: "Printed NAQSH on clear PPF film (Full Wrap)",
+        decal_service_value: "Decals (sticker)",
+        decal_service_value_wa: "Decals (Sticker)",
+        length_label: "Length",
+        recommended_label: "Recommended",
+        total_label: "total",
+        incl_vat_short: "(incl. VAT)",
+        excl_vat_short: "(excl. VAT)",
+        na_value: "N/A",
+        decal_mode: "Decal pricing mode",
+        mode_meters: "Quick (meters)",
+        mode_smart: "Smart (dimensions)",
+        decal_mode_help: "Quick: for stripes / simple runs. Smart: for circles, logos, blocks — we convert dimensions to billable roll meters (with waste + minimum).",
+        roll_width: "Roll width",
+        shape: "Shape",
+        shape_rectangle: "Rectangle / Block",
+        shape_circle: "Circle",
+        shape_stripe: "Stripe",
+        width_cm: "Width (cm)",
+        height_cm: "Length (cm)",
+        diameter_cm: "Diameter (cm)",
+        quantity: "Quantity",
+        minimum_billable: "Minimum billable meters",
+        waste_allowance: "Printing allowance",
+        smart_note: "Smart mode estimates billable roll meters based on the design\'s bounding box, roll width, and a printing allowance. Final billable meters may vary with layout and cutting.",
+        advanced: "Advanced",
       },
       ar: {
         currency: "العملة:",
@@ -701,7 +898,55 @@
         note: "ملاحظة:",
         note_text: "للأعمال الكبيرة/المعقدة قد يتم تعديل السعر بعد مراجعة التصميم وخطة التركيب.",
         vat_no: "لا (افتراضيًا)",
-        yes: "نعم"
+        yes: "نعم",
+        lead_time_text: "تصنيع/وصول المواد ~ <b>20 يومًا (±)</b> + تركيب ~ <b>5 أيام</b> ⇒ تقريبًا <b>25 يومًا إجمالًا</b> (حسب الفحص والجدولة).",
+        ph_make: "مثال: BMW",
+        ph_model: "مثال: X5",
+        ph_year: "مثال: 2023",
+        ph_color: "مثال: أسود",
+        ph_wrap_notes: "مثال: نمط NAQSH، مناطق يُفضّل تجنبها، اللمسة المطلوبة...",
+        ph_meters: "مثال: 2.5",
+        ph_decal_notes: "مثال: خط على الكبوت، الأبواب، السقف، الشنطة، شعارات صغيرة...",
+        what_is_this: "ما هي الخدمة:",
+        wrap_desc: "طباعة <b>NAQSH</b> على <b>فلم حماية شفاف PPF</b> (ليس فينيل ملون).",
+        decal_desc: "ملصق مطبوع (Sticker) — <b>ليس تغليف</b>.",
+        not_ppf: "هذا <b>ليس PPF</b> ولا يمتلك خصائص حماية PPF.",
+        inspection: "الفحص:",
+        inspection_decal: "يُفضّل، لكنه عادة أقل أهمية من التغليف الكامل.",
+        service_label: "الخدمة",
+        vehicle_label: "السيارة",
+        color_label: "اللون",
+        excluded_label: "غير مشمولة",
+        estimated_lead_time: "المدة المتوقعة",
+        lead_time_kv: "حوالي 25 يومًا (20 ± مواد + 5 تركيب)",
+        required_before_confirmation: "مطلوب قبل التأكيد",
+        wrap_service_value: "طباعة NAQSH على حماية شفافة (تغليف كامل)",
+        wrap_service_value_wa: "طباعة NAQSH على PPF شفاف (تغليف كامل)",
+        decal_service_value: "ملصقات (ستيكر)",
+        decal_service_value_wa: "ملصقات (Sticker)",
+        length_label: "الطول",
+        recommended_label: "يُفضّل",
+        total_label: "الإجمالي",
+        incl_vat_short: "(شامل الضريبة)",
+        excl_vat_short: "(بدون ضريبة)",
+        na_value: "غير متوفر",
+        decal_mode: "طريقة تسعير الملصقات",
+        mode_meters: "سريع (بالمتر)",
+        mode_smart: "ذكي (بالأبعاد)",
+        decal_mode_help: "السريع: للخطوط والشرائط. الذكي: للدوائر والشعارات والأشكال — نحول الأبعاد إلى أمتار رول محسوبة (مع هدر وحد أدنى).",
+        roll_width: "عرض الرول",
+        shape: "الشكل",
+        shape_rectangle: "مستطيل / بلوك",
+        shape_circle: "دائرة",
+        shape_stripe: "شريط / خط",
+        width_cm: "العرض (سم)",
+        height_cm: "الطول (سم)",
+        diameter_cm: "القطر (سم)",
+        quantity: "الكمية",
+        minimum_billable: "الحد الأدنى للأمتار المحسوبة",
+        waste_allowance: "سماحية الطباعة",
+        smart_note: "الوضع الذكي يقدّر أمتار الرول المحسوبة بناءً على مساحة التصميم، عرض الرول، وسماحية الطباعة. قد تختلف الأمتار النهائية حسب الترتيب والقص.",
+        advanced: "إعدادات متقدمة",
       }
     };
 
@@ -720,13 +965,53 @@
         }
       });
 
+
+      // Translate placeholders
+      const phMap = [
+        ["wrapMake","ph_make"],
+        ["wrapModel","ph_model"],
+        ["wrapYear","ph_year"],
+        ["wrapColor","ph_color"],
+        ["wrapNotes","ph_wrap_notes"],
+        ["decalMeters","ph_meters"],
+        ["decalMake","ph_make"],
+        ["decalModel","ph_model"],
+        ["decalYear","ph_year"],
+        ["decalColor","ph_color"],
+        ["decalNotes","ph_decal_notes"],
+      ];
+      phMap.forEach(([id,key]) => {
+        const el = document.getElementById(id);
+        if(el && dict[key] !== undefined){
+          el.setAttribute("placeholder", dict[key]);
+        }
+      });
+
+
+      refreshDynamicOnLang();
+
       const btn = document.getElementById("langBtn");
       if(btn){
         btn.innerHTML = (lang === "ar") ? "<strong>EN</strong> English" : "<strong>AR</strong> العربية";
       }
     }
 
-    function toggleLang(){
+    
+    
+    function refreshDynamicOnLang(){
+      try{
+        const wrapEl = document.getElementById("wrapResults");
+        const decalEl = document.getElementById("decalResults");
+        const wrapVisible = wrapEl && !wrapEl.classList.contains("hidden");
+        const decalVisible = decalEl && !decalEl.classList.contains("hidden");
+        // Re-render dynamic cards in the currently selected language
+        if(wrapVisible){ calculateWrap(); }
+        if(decalVisible){ calculateDecal(); }
+      }catch(e){
+        // swallow
+      }
+    }
+function toggleLang(){
       applyLang(currentLang === "en" ? "ar" : "en");
     }
 
@@ -752,7 +1037,13 @@
       }
     }
 
-    function fmtAED(n){
+    
+    function showResults(id){
+      const el = document.getElementById(id);
+      if(el) el.classList.remove("hidden");
+    }
+
+function fmtAED(n){
       try { return "AED " + Number(n).toLocaleString(undefined, {maximumFractionDigits: 0}); }
       catch(e){ return "AED " + n; }
     }
@@ -786,7 +1077,24 @@
       "4x4": { materialCost: 9600, marginPct: 0.20, labor: 3500, displayName: "4x4 / SUV" }
     };
 
+    // Decal (sticker) pricing (internal inputs; not shown as cost)
+    const DECAL_MIN_BILLABLE_METERS = 1.0; // internal minimum charge
+const DECAL_RATE = 65;        // AED per meter (supplier printing + material)
+    const DECAL_MARGIN = 0.20;    // internal margin
+    function decalLaborTier(m){
+      const meters = Number(m) || 0;
+      if(meters <= 0) return 0;
+      if(meters <= 3) return 500;
+      if(meters <= 6) return 1000;
+      if(meters <= 9) return 2000;
+      // For very large jobs, conservative scaling
+      return 2500 + Math.ceil((meters - 9)) * 200;
+    }
+
+
     function calculateWrap(){
+      const dict = I18N[currentLang] || I18N.en;
+
       const carType = document.getElementById('wrapCarType').value;
       const make = (document.getElementById('wrapMake').value || "").trim();
       const model = (document.getElementById('wrapModel').value || "").trim();
@@ -800,19 +1108,19 @@
       const subtotal = materialSell + p.labor;
       const v = vatify(subtotal, includeVat);
 
-      const vehicleLine = [year, make, model].filter(Boolean).join(" ").trim() || "N/A";
-      document.getElementById('wrapPriceBig').innerHTML = `${fmtAED(v.total)} <span>/ total ${includeVat ? '(incl. VAT)' : '(excl. VAT)'}</span>`;
+      const vehicleLine = [year, make, model].filter(Boolean).join(" ").trim() || (dict.na_value || "N/A");
+
+      document.getElementById('wrapPriceBig').innerHTML =
+        `${fmtAED(v.total)} <span>/ ${dict.total_label || 'total'} ${includeVat ? (dict.incl_vat_short || '(incl. VAT)') : (dict.excl_vat_short || '(excl. VAT)')}</span>`;
 
       buildKV('wrapKV', [
-        { k: "Service", v: "Printed NAQSH on clear PPF (full wrap)" },
-        { k: "Car Type", v: p.displayName },
-        { k: "Vehicle", v: vehicleLine },
-        { k: "Color", v: color || "N/A" },
-        
-        
-        { k: includeVat ? "VAT (5%)" : "VAT", v: includeVat ? fmtAED(v.vat) : "Excluded" },
-        { k: "Estimated Lead Time", v: "≈ 25 days total (20 ± material + 5 install)" },
-        { k: "Inspection", v: "Required before confirmation" }
+        { k: (dict.service_label || "Service"), v: (dict.wrap_service_value || "Printed NAQSH on clear PPF (full wrap)") },
+        { k: (dict.car_type || "Car Type"), v: p.displayName },
+        { k: (dict.vehicle_label || "Vehicle"), v: vehicleLine },
+        { k: (dict.color_label || "Color"), v: color || (dict.na_value || "N/A") },
+        { k: (dict.vat || "VAT"), v: includeVat ? fmtAED(v.vat) : (dict.excluded_label || "Excluded") },
+        { k: (dict.estimated_lead_time || "Estimated Lead Time"), v: (dict.lead_time_kv || "≈ 25 days total (20 ± material + 5 install)") },
+        { k: (dict.inspection || "Inspection"), v: (dict.required_before_confirmation || "Required before confirmation") }
       ]);
 
       const msg =
@@ -820,66 +1128,60 @@
 
 Please share a formal quote for:
 
-SERVICE: Printed NAQSH  on clear PPF film (Full Wrap)
-CAR TYPE: ${p.displayName}
-VEHICLE: ${vehicleLine}
-COLOR: ${color || "N/A"}
+SERVICE: ${dict.wrap_service_value_wa || "Printed NAQSH on clear PPF film (Full Wrap)"}
+Car Type: ${p.displayName}
+Vehicle: ${vehicleLine}
+Color: ${color || "N/A"}
+VAT: ${includeVat ? "Included (5%)" : "Excluded"}
+Estimated Lead Time: ~25 days total (20 ± material + 5 install)
+Inspection: Required before confirmation
+Notes: ${notes || "-"}
 
-ESTIMATED PRICE: ${fmtAED(v.total)} ${includeVat ? "(incl. VAT)" : "(excl. VAT)"}
+TOTAL: ${fmtAED(v.total)} ${includeVat ? "(incl. VAT)" : "(excl. VAT)"}
+
 Thank you.`;
 
       document.getElementById('wrapWhatsapp').href = makeWhatsAppLink(msg);
-      document.getElementById('wrapResults').classList.add('active');
-      document.getElementById('wrapResults').scrollIntoView({behavior:'smooth', block:'start'});
-    }
-
-    // Decals pricing: supplier cost 65 AED/m (hidden), apply 20% margin + labor tiers.
-    const DECAL = { supplierCostPerM: 65, marginPct: 0.20 };
-
-    function decalLaborForMeters(m){
-      if (m >= 2 && m <= 3) return 500;
-      if (m > 3 && m <= 6) return 1000;
-      if (m > 6 && m <= 9) return 2000;
-      if (m < 2) return 300;
-      return 2500; // >9m estimate
+      document.getElementById('wrapResults').style.display = 'block';
+      showResults("wrapResults");
     }
 
     function calculateDecal(){
-      const meters = Number(document.getElementById('decalMeters').value);
-      const make = (document.getElementById('decalMake').value || "").trim();
+      const dict = I18N[currentLang] || I18N.en;
+
+      const meters = computeDecalBillableMeters();
+const make = (document.getElementById('decalMake').value || "").trim();
       const model = (document.getElementById('decalModel').value || "").trim();
       const year = (document.getElementById('decalYear').value || "").trim();
       const color = (document.getElementById('decalColor').value || "").trim();
       const notes = (document.getElementById('decalNotes').value || "").trim();
       const includeVat = document.getElementById('decalVat').value === 'yes';
 
-      if(!meters || meters <= 0){
-        alert("Please enter a valid total length in meters.");
-        return;
-      }
-
-      const supplierMaterial = meters * DECAL.supplierCostPerM;        // hidden
-      const materialSell = supplierMaterial * (1 + DECAL.marginPct);   // shown
-      const labor = decalLaborForMeters(meters);
+      const m = isFinite(meters) ? meters : 0;
+const labor = decalLaborTier(m);
+const materialSell = (m * DECAL_RATE) * (1 + DECAL_MARGIN);
       const subtotal = materialSell + labor;
       const v = vatify(subtotal, includeVat);
 
-      const vehicleLine = [year, make, model].filter(Boolean).join(" ").trim() || "N/A";
-      document.getElementById('decalPriceBig').innerHTML = `${fmtAED(v.total)} <span>/ total ${includeVat ? '(incl. VAT)' : '(excl. VAT)'}</span>`;
+      
+      const modeLine = (decalMode === "smart")
+        ? (dict.mode_smart || "Smart (dimensions)")
+        : (dict.mode_meters || "Quick (meters)");
+      const billableLine = `${(dict.length_label || "Length")}: ${m.toFixed(2)} m (${dict.recommended_label || "Recommended"})`;
 
-      const tierNote = (meters > 9)
-        ? "Meterage > 9m: estimate shown, final price subject to design review."
-        : "Labor tier auto-selected based on total meterage.";
+      const vehicleLine = [year, make, model].filter(Boolean).join(" ").trim() || (dict.na_value || "N/A");
+
+      document.getElementById('decalPriceBig').innerHTML =
+        `${fmtAED(v.total)} <span>/ ${dict.total_label || 'total'} ${includeVat ? (dict.incl_vat_short || '(incl. VAT)') : (dict.excl_vat_short || '(excl. VAT)')}</span>`;
 
       buildKV('decalKV', [
-        { k: "Service", v: "Printed decal / sticker (non-PPF)" },
-        { k: "Vehicle", v: vehicleLine },
-        { k: "Color", v: color || "N/A" },
-        { k: "Total Length", v: meters.toFixed(1) + " m" },
-        
-        
-        { k: includeVat ? "VAT (5%)" : "VAT", v: includeVat ? fmtAED(v.vat) : "Excluded" },
-        { k: "Note", v: tierNote }
+        { k: (dict.decal_mode || "Decal mode"), v: modeLine },
+        { k: (dict.service_label || "Service"), v: (dict.decal_service_value || "Decals (sticker)") },
+        { k: (dict.length_label || "Length"), v: `${m ? m.toFixed(2) : "0.00"} m` },
+        { k: (dict.vehicle_label || "Vehicle"), v: vehicleLine },
+        { k: (dict.color_label || "Color"), v: color || (dict.na_value || "N/A") },
+        { k: (dict.vat || "VAT"), v: includeVat ? fmtAED(v.vat) : (dict.excluded_label || "Excluded") },
+        { k: (dict.inspection || "Inspection"), v: (dict.recommended_label || "Recommended") }
       ]);
 
       const msg =
@@ -887,18 +1189,94 @@ Thank you.`;
 
 Please share a formal quote for:
 
-SERVICE: Decals / Stickers (Printed) — NOT PPF
-VEHICLE: ${vehicleLine}
-COLOR: ${color || "N/A"}
-TOTAL LENGTH: ${meters.toFixed(1)} m
+MODE: ${modeLine}
+BILLABLE: ${m.toFixed(2)} m
+SERVICE: ${dict.decal_service_value_wa || "Decals (Sticker)"}
+Length: ${m ? m.toFixed(2) : "0.00"} m
+Vehicle: ${vehicleLine}
+Color: ${color || "N/A"}
+VAT: ${includeVat ? "Included (5%)" : "Excluded"}
+Inspection: Recommended
+Notes: ${notes || "-"}
 
-ESTIMATED PRICE: ${fmtAED(v.total)} ${includeVat ? "(incl. VAT)" : "(excl. VAT)"}
+TOTAL: ${fmtAED(v.total)} ${includeVat ? "(incl. VAT)" : "(excl. VAT)"}
+
 Thank you.`;
 
       document.getElementById('decalWhatsapp').href = makeWhatsAppLink(msg);
-      document.getElementById('decalResults').classList.add('active');
-      document.getElementById('decalResults').scrollIntoView({behavior:'smooth', block:'start'});
+      document.getElementById('decalResults').style.display = 'block';
+      showResults("decalResults");
     }
-  </script>
+
+
+    let decalMode = "meters";
+
+    function setDecalMode(mode){
+      decalMode = (mode === "smart") ? "smart" : "meters";
+      const btnMeters = document.getElementById("decalModeMeters");
+      const btnSmart = document.getElementById("decalModeSmart");
+      const gMeters = document.getElementById("decalMetersGroup");
+      const gSmart = document.getElementById("decalSmartGroup");
+      if(btnMeters && btnSmart){
+        btnMeters.classList.toggle("active", decalMode === "meters");
+        btnSmart.classList.toggle("active", decalMode === "smart");
+      }
+      if(gMeters && gSmart){
+        gMeters.classList.toggle("hidden", decalMode !== "meters");
+        gSmart.classList.toggle("hidden", decalMode !== "smart");
+      }
+      updateDecalShapeFields();
+    }
+
+    function updateDecalShapeFields(){
+      const shape = (document.getElementById("decalShape")?.value) || "rectangle";
+      const w = document.getElementById("shapeWidthField");
+      const h = document.getElementById("shapeHeightField");
+      const d = document.getElementById("shapeDiameterField");
+      if(!w || !h || !d) return;
+      if(shape === "circle"){
+        d.classList.remove("hidden");
+        w.classList.add("hidden");
+        h.classList.add("hidden");
+      }else{
+        d.classList.add("hidden");
+        w.classList.remove("hidden");
+        h.classList.remove("hidden");
+      }
+    }
+
+    function computeDecalBillableMeters(){
+      if(decalMode === "meters"){
+        const meters = Number(document.getElementById("decalMeters")?.value) || 0;
+        return Math.max(0, meters);
+      }
+
+      const rollW = Number(document.getElementById("decalRollWidth")?.value) || 1.52;
+      const shape = (document.getElementById("decalShape")?.value) || "rectangle";
+      const qty = Math.max(1, Math.round(Number(document.getElementById("decalQty")?.value) || 1));
+      const minMeters = DECAL_MIN_BILLABLE_METERS;
+const waste = Math.max(0, Number(document.getElementById("decalWaste")?.value) || 0);
+
+      let areaOne = 0; // m2 bounding
+      if(shape === "circle"){
+        const dcm = Number(document.getElementById("decalDiameterCm")?.value) || 0;
+        const dm = dcm / 100.0;
+        areaOne = dm * dm;
+      }else{
+        const wcm = Number(document.getElementById("decalWidthCm")?.value) || 0;
+        const hcm = Number(document.getElementById("decalHeightCm")?.value) || 0;
+        const wm = wcm / 100.0;
+        const hm = hcm / 100.0;
+        areaOne = wm * hm;
+      }
+
+      let totalArea = areaOne * qty;
+      totalArea = totalArea * (1 + waste);
+
+      const meters = (rollW > 0) ? (totalArea / rollW) : 0;
+      const billable = Math.max(minMeters, meters);
+      return Math.max(0, billable);
+    }
+</script>
 </body>
 </html>
