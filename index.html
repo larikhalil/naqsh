@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1885 x NAQSH - Calculator</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root{
+      --red-primary:#E31E24;
+      --red-dark:#B91C1C;
+      --gold-primary:#D4AF37;
+      --gold-light:#F4E4BC;
+      --gold-dark:#8B6914;
+      --black-bg:#0a0a0a;
+      --black-texture:#111111;
+      --text-light:#ffffff;
+      --text-gray:#cccccc;
+      --border-gold: rgba(212,175,55,0.2);
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+    body{
+      font-family:'Inter','Cairo',sans-serif;
+      background-color:var(--black-bg);
+      background-image:
+        radial-gradient(circle at 20% 50%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
+        linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+      min-height:100vh;
+      color:var(--text-light);
+      position:relative;
+      overflow-x:hidden;
+    }
+
+    .container{ max-width:1200px; margin:0 auto; padding:20px; }
+
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:20px 0;
+      border-bottom:2px solid;
+      border-image: linear-gradient(90deg, transparent, var(--gold-primary), transparent) 1;
+      margin-bottom:30px;
+      flex-wrap:wrap;
+      gap:20px;
+    }
+
+    .logo-container{ display:flex; align-items:center; gap:20px; }
+    .logo-container img{
+      height:90px; width:auto;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+      object-fit:contain;
+    }
+    .brand-text h1{
+      font-size:2.0rem;
+      font-weight:700;
+      background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 50%, var(--gold-dark) 100%);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+      text-transform:uppercase;
+      letter-spacing:3px;
+      white-space:nowrap;
+    }
+    .brand-text .subtitle{
+      margin-top:6px;
+      color:var(--text-gray);
+      letter-spacing:1px;
+      font-size:0.95rem;
+    }
+
+    .calculator-section{
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid var(--border-gold);
+      border-radius: 20px;
+      padding: 35px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .section-title{
+      font-size:2rem;
+      margin-bottom:10px;
+      text-align:center;
+      background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .section-subtitle{
+      text-align:center;
+      color:var(--text-gray);
+      margin-bottom:20px;
+      line-height:1.6;
+    }
+
+    .tabs{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      margin: 10px 0 25px;
+      flex-wrap:wrap;
+    }
+    .tab-btn{
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(212,175,55,0.35);
+      color: var(--gold-primary);
+      padding: 10px 18px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-weight:700;
+      letter-spacing:1px;
+      transition: all .25s ease;
+      font-family:inherit;
+    }
+    .tab-btn.active{
+      background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+      color: var(--black-bg);
+      border-color: transparent;
+      box-shadow: 0 12px 28px rgba(212,175,55,0.08);
+    }
+    .tab-panel{ display:none; }
+    .tab-panel.active{ display:block; animation: fadeInUp .45s ease; }
+
+    .input-group{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+    .form-field{ position:relative; }
+    .form-field label{
+      display:block;
+      margin-bottom:10px;
+      color:var(--gold-primary);
+      font-size:0.9rem;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      font-weight:600;
+    }
+    .form-field input, .form-field select, .form-field textarea{
+      width:100%;
+      padding: 14px 18px;
+      background: rgba(0,0,0,0.5);
+      border: 2px solid rgba(212,175,55,0.3);
+      border-radius: 10px;
+      color: var(--text-light);
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all .25s ease;
+      appearance:none;
+      -webkit-appearance:none;
+    }
+    .form-field textarea{ min-height: 92px; resize: vertical; }
+    .form-field select{
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat:no-repeat;
+      background-position:right 15px center;
+      background-size:20px;
+      padding-right: 50px;
+    }
+    .form-field select option{ background-color:#1a1a1a; color:var(--text-light); }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus{
+      outline:none;
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 0 3px rgba(212,175,55,0.1);
+    }
+
+    .row-inline{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-top: 8px;
+      color: var(--text-gray);
+      font-size: 0.95rem;
+    }
+    .chip{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding: 8px 12px;
+      background: rgba(212,175,55,0.07);
+      border: 1px solid rgba(212,175,55,0.18);
+      border-radius: 999px;
+    }
+    .chip strong{ color: var(--gold-light); }
+
+    .calculate-btn{
+      width:100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--red-primary) 0%, var(--red-dark) 100%);
+      color:#fff;
+      border:none;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor:pointer;
+      transition: all .25s ease;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-family:inherit;
+      position:relative;
+      overflow:hidden;
+      margin-top: 4px;
+    }
+    .calculate-btn:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(227,30,36,0.3);
+    }
+
+    .notice{
+      margin-top: 14px;
+      background: linear-gradient(135deg, rgba(212,175,55,0.10) 0%, rgba(212,175,55,0.05) 100%);
+      border-left: 4px solid var(--gold-primary);
+      border-radius: 0 15px 15px 0;
+      padding: 18px;
+      color: var(--text-gray);
+      line-height: 1.6;
+    }
+    .notice b{ color: var(--gold-light); }
+
+    .results{
+      display:none;
+      margin-top: 20px;
+    }
+    .results.active{ display:block; animation: fadeInUp .5s ease; }
+
+    .quote-card{
+      background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 20px;
+      padding: 26px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    .quote-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:16px;
+      flex-wrap:wrap;
+      border-bottom: 1px solid rgba(212,175,55,0.15);
+      padding-bottom: 16px;
+      margin-bottom: 16px;
+    }
+    .quote-title{
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: var(--gold-light);
+      letter-spacing: .5px;
+    }
+    .price-big{
+      font-size: 2.6rem;
+      font-weight: 900;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    .price-big span{
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-gray);
+    }
+
+    .kv{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .kv .item{
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .kv .k{ color: var(--text-gray); }
+    .kv .v{ color: var(--gold-light); font-weight: 700; text-align:right; }
+
+    .whatsapp-btn{
+      width:100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+      color:#fff;
+      border:none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor:pointer;
+      transition: all .25s ease;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      text-decoration:none;
+      margin-top: 14px;
+      font-family:inherit;
+    }
+    .whatsapp-btn:hover{ transform: scale(1.02); box-shadow: 0 5px 20px rgba(37,211,102,0.3); }
+    .whatsapp-btn svg{ width:22px; height:22px; }
+
+    .muted{ color: var(--text-gray); }
+
+    @media (max-width: 768px){
+      header{ flex-direction:column; text-align:center; }
+      .logo-container{ flex-direction:column; }
+      .brand-text h1{ font-size: 1.5rem; letter-spacing:2px; }
+      .logo-container img{ height: 80px; }
+      .price-big{ font-size: 2.1rem; }
+      .calculator-section{ padding: 26px; }
+    }
+
+    @keyframes fadeInUp{
+      from{ opacity:0; transform: translateY(22px); }
+      to{ opacity:1; transform: translateY(0); }
+    }
+  
+    .lang-btn{
+      cursor:pointer;
+      background: rgba(212,175,55,0.10);
+      color: var(--gold-light);
+      transition: all .2s ease;
+      border: 1px solid rgba(212,175,55,0.25);
+      font-family: inherit;
+    }
+    .lang-btn:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(212,175,55,0.06);
+    }
+
+    /* RTL support */
+    body.rtl{ direction: rtl; }
+    body.rtl header{ text-align: right; }
+    body.rtl .logo-container{ flex-direction: row-reverse; }
+    body.rtl .row-inline{ justify-content: flex-start; }
+    body.rtl .form-field select{
+      background-position: left 15px center;
+      padding-left: 50px;
+      padding-right: 18px;
+    }
+    body.rtl .kv .v{ text-align: left; }
+
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-container">
+        <!-- Put LOGO.png in the same folder if you want the 1885 logo to appear -->
+        <img src="LOGO.png" alt="1885 Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';">
+        <div id="logo-fallback" style="display:none; width:90px; height:90px; background: linear-gradient(135deg, #D4AF37 0%, #8B6914 100%); border-radius:50%; align-items:center; justify-content:center; font-size:1.8rem; font-weight:900; color:#0a0a0a; border:3px solid #F4E4BC;">
+          1885
+        </div>
+
+        <div class="brand-text">
+          <h1>1885 × NAQSH</h1>
+</div>
+      </div>
+
+      <div class="row-inline">
+        <span class="chip"><strong><span data-i18n="currency">Currency:</span></strong> AED</span>
+        <span class="chip"><strong><span data-i18n="vat">VAT:</span></strong> <span data-i18n="vat_default">excluded by default</span></span>
+        <button class="chip lang-btn" id="langBtn" onclick="toggleLang()" type="button"><strong>AR</strong> العربية</button>
+</div>
+    </header>
+
+    <section class="calculator-section">
+      <h2 class="section-title"><span data-i18n="get_quote">Get a Quote</span></h2>
+      <p class="section-subtitle">
+        <span data-i18n="choose_tab">Choose the service tab below. Prices are estimates and <b>exclude VAT</b>.</span><br/>
+        <span data-i18n="wrap_inspection_note">For wrap jobs, vehicle inspection is required before confirmation.</span>
+      </p>
+
+      <div class="tabs">
+        <button class="tab-btn active" id="tabWrapBtn" onclick="setTab('wrap')"><span data-i18n="tab_wrap">Printed NAQSH on Clear PPF</span></button>
+        <button class="tab-btn" id="tabDecalBtn" onclick="setTab('decal')"><span data-i18n="tab_decal">Decals (Sticker)</span></button>
+      </div>
+
+      <!-- TAB 1: WRAP -->
+      <div class="tab-panel active" id="tabWrap">
+        <div class="input-group">
+          <div class="form-field">
+            <label><span data-i18n="car_type">Car Type</span></label>
+            <select id="wrapCarType">
+              <option value="sedan">Sedan</option>
+              <option value="4x4">4x4 / SUV</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label><span data-i18n="make">Make</span></label>
+            <input id="wrapMake" type="text" placeholder="e.g. BMW" />
+          </div>
+
+          <div class="form-field">
+            <label><span data-i18n="model">Model</span></label>
+            <input id="wrapModel" type="text" placeholder="e.g. X5" />
+          </div>
+
+          <div class="form-field">
+            <label><span data-i18n="year">Year</span></label>
+            <input id="wrapYear" type="number" min="1990" max="2030" placeholder="e.g. 2023" />
+          </div>
+
+          <div class="form-field">
+            <label><span data-i18n="car_color">Car Color</span></label>
+            <input id="wrapColor" type="text" placeholder="e.g. Black" />
+          </div>
+
+          <div class="form-field">
+            <label><span data-i18n="include_vat">Include VAT (5%)?</span></label>
+            <select id="wrapVat">
+              <option value="no" selected data-i18n="vat_no">No (default)</option>
+              <option value="yes" data-i18n="yes">Yes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-field" style="margin-bottom: 12px;">
+          <label><span data-i18n="wrap_notes">Notes / Design Notes (optional)</span></label>
+          <textarea id="wrapNotes" placeholder="e.g. NAQSH pattern style, areas to avoid, preferred finish..."></textarea>
+        </div>
+
+        <button class="calculate-btn" onclick="calculateWrap()"><span data-i18n="calc_wrap">Calculate Wrap Quote</span></button>
+
+        <div class="notice">
+          <b>What this is:</b> Printed <b>NAQSH</b>  on <b>clear PPF film</b> (not colored vinyl).<br/>
+          <b><span data-i18n="lead_time">Lead time (conservative):</span></b> material production/arrival ~ <b>20 days (±)</b> + installation ~ <b>5 days</b> ⇒ approx. <b>25 days total</b> (subject to inspection + scheduling).<br/>
+          <b><span data-i18n="important">Important:</span></b> <span data-i18n="inspection_required">Vehicle <b>inspection is required</b> before confirmation to ensure body/paint condition is suitable (chips, dents, cracks, repainted panels may affect outcome).
+        </div>
+
+        <div class="results" id="wrapResults">
+          <div class="quote-card">
+            <div class="quote-top">
+              <div>
+                <div class="quote-title" id="wrapQuoteTitle" data-i18n="wrap_quote_title">Wrap Quote</div>
+                <div class="muted" id="wrapQuoteSub" data-i18n="wrap_quote_sub">Printed NAQSH on clear PPF film</div>
+              </div>
+              <div class="price-big" id="wrapPriceBig">AED 0 <span>/ total</span></div>
+            </div>
+
+            <div class="kv" id="wrapKV"></div>
+
+            <a class="whatsapp-btn" id="wrapWhatsapp" href="#" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+              </svg>
+              <span data-i18n="send_whatsapp">Send Quote to WhatsApp</span>
+            </a>
+
+            <div class="notice" style="margin-top:14px;">
+              <b><span data-i18n="reminder">Reminder:</span></b> <span data-i18n="reminder_text">VAT is excluded unless selected above. Final pricing may change after inspection and design confirmation.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: DECALS -->
+      <div class="tab-panel" id="tabDecal">
+        <div class="input-group">
+          <div class="form-field">
+            <label><span data-i18n="total_length">Total Length (meters)</span></label>
+            <input id="decalMeters" type="number" min="0.1" step="0.1" placeholder="e.g. 2.5" />
+          </div>
+
+          <div class="form-field">
+            <label><span data-i18n="make">Make</span></label>
+            <input id="decalMake" type="text" placeholder="e.g. Toyota" />
+          </div>
+
+          <div class="form-field">
+            <label><span data-i18n="model">Model</span></label>
+            <input id="decalModel" type="text" placeholder="e.g. Land Cruiser" />
+          </div>
+
+          <div class="form-field">
+            <label><span data-i18n="year">Year</span></label>
+            <input id="decalYear" type="number" min="1990" max="2030" placeholder="e.g. 2021" />
+          </div>
+
+          <div class="form-field">
+            <label><span data-i18n="car_color">Car Color</span></label>
+            <input id="decalColor" type="text" placeholder="e.g. White" />
+          </div>
+
+          <div class="form-field">
+            <label><span data-i18n="include_vat">Include VAT (5%)?</span></label>
+            <select id="decalVat">
+              <option value="no" selected data-i18n="vat_no">No (default)</option>
+              <option value="yes" data-i18n="yes">Yes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-field" style="margin-bottom: 12px;">
+          <label><span data-i18n="decal_notes">Decal Location / Notes (optional)</span></label>
+          <textarea id="decalNotes" placeholder="e.g. Hood stripe, side doors, roof, trunk, small logos..."></textarea>
+        </div>
+
+        <button class="calculate-btn" onclick="calculateDecal()"><span data-i18n="calc_decal">Calculate Decal Quote</span></button>
+
+        <div class="notice">
+          <b>What this is:</b> A <b>printed sticker / decal</b> (NOT wrap).<br/>
+          <b>Important:</b> This is <b>not PPF</b> and does not have PPF protection properties. <br/>
+          <b>Inspection:</b> Still recommended, but typically less critical than full wrap jobs.
+        </div>
+
+        <div class="results" id="decalResults">
+          <div class="quote-card">
+            <div class="quote-top">
+              <div>
+                <div class="quote-title" id="decalQuoteTitle" data-i18n="decal_quote_title">Decal Quote</div>
+                <div class="muted" id="decalQuoteSub" data-i18n="decal_quote_sub">Printed sticker / decal (non-PPF)</div>
+              </div>
+              <div class="price-big" id="decalPriceBig">AED 0 <span>/ total</span></div>
+            </div>
+
+            <div class="kv" id="decalKV"></div>
+
+            <a class="whatsapp-btn" id="decalWhatsapp" href="#" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+              </svg>
+              <span data-i18n="send_whatsapp">Send Quote to WhatsApp</span>
+            </a>
+
+            <div class="notice" style="margin-top:14px;">
+              <b><span data-i18n="note">Note:</span></b> <span data-i18n="note_text">For large/complex designs, pricing may be adjusted after design review and installation planning.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <script>
+    // WhatsApp number from your existing site
+    const WHATSAPP_NUMBER = "971501187630";
+
+    // ===== Language Toggle (EN/AR) =====
+    let currentLang = "en";
+
+    const I18N = {
+      en: {
+        currency: "Currency:",
+        vat: "VAT:",
+        vat_default: "excluded by default",
+        get_quote: "Get a Quote",
+        choose_tab: "Choose the service tab below. Prices are estimates and <b>exclude VAT</b>.",
+        wrap_inspection_note: "For wrap jobs, vehicle inspection is required before confirmation.",
+        tab_wrap: "Printed NAQSH on Clear PPF",
+        tab_decal: "Decals (Sticker)",
+        car_type: "Car Type",
+        make: "Make",
+        model: "Model",
+        year: "Year",
+        car_color: "Car Color",
+        include_vat: "Include VAT (5%)?",
+        wrap_notes: "Notes / Design Notes (optional)",
+        decal_notes: "Decal Location / Notes (optional)",
+        total_length: "Total Length (meters)",
+        calc_wrap: "Calculate Wrap Quote",
+        calc_decal: "Calculate Decal Quote",
+        lead_time: "Lead time (conservative):",
+        important: "Important:",
+        inspection_required: "Vehicle <b>inspection is required</b> before confirmation to ensure body/paint condition is suitable (chips, dents, cracks, repainted panels may affect outcome).",
+        reminder: "Reminder:",
+        reminder_text: "VAT is excluded unless selected above. Final pricing may change after inspection and design confirmation.",
+        send_whatsapp: "Send Quote to WhatsApp",
+        wrap_quote_title: "Wrap Quote",
+        wrap_quote_sub: "Printed NAQSH on clear PPF film",
+        decal_quote_title: "Decal Quote",
+        decal_quote_sub: "Printed sticker / decal (non-PPF)",
+        note: "Note:",
+        note_text: "For large/complex designs, pricing may be adjusted after design review and installation planning.",
+        vat_no: "No (default)",
+        yes: "Yes"
+      },
+      ar: {
+        currency: "العملة:",
+        vat: "الضريبة:",
+        vat_default: "بدون ضريبة (افتراضيًا)",
+        get_quote: "احصل على عرض سعر",
+        choose_tab: "اختر نوع الخدمة بالأسفل. الأسعار تقديرية و<b>بدون ضريبة</b>.",
+        wrap_inspection_note: "لخدمات التغليف الكامل، يلزم فحص السيارة قبل التأكيد.",
+        tab_wrap: "طباعة NAQSH على حماية شفافة (PPF)",
+        tab_decal: "ملصقات (Sticker)",
+        car_type: "نوع السيارة",
+        make: "الماركة",
+        model: "الموديل",
+        year: "السنة",
+        car_color: "لون السيارة",
+        include_vat: "إضافة ضريبة 5%؟",
+        wrap_notes: "ملاحظات / تفاصيل التصميم (اختياري)",
+        decal_notes: "موقع الملصق / ملاحظات (اختياري)",
+        total_length: "الطول الإجمالي (متر)",
+        calc_wrap: "احسب عرض التغليف",
+        calc_decal: "احسب عرض الملصقات",
+        lead_time: "المدة المتوقعة (تحفظًا):",
+        important: "مهم:",
+        inspection_required: "يلزم <b>فحص السيارة</b> قبل التأكيد للتأكد من حالة الهيكل/الدهان (الخدوش، النقرات، الانبعاجات أو إعادة الدهان قد تؤثر على النتيجة).",
+        reminder: "تنبيه:",
+        reminder_text: "الضريبة غير مشمولة ما لم يتم اختيارها أعلاه. السعر النهائي قد يتغير بعد الفحص وتأكيد التصميم.",
+        send_whatsapp: "إرسال العرض عبر واتساب",
+        wrap_quote_title: "عرض تغليف",
+        wrap_quote_sub: "طباعة NAQSH على PPF شفاف",
+        decal_quote_title: "عرض ملصقات",
+        decal_quote_sub: "ملصق مطبوع (غير PPF)",
+        note: "ملاحظة:",
+        note_text: "للأعمال الكبيرة/المعقدة قد يتم تعديل السعر بعد مراجعة التصميم وخطة التركيب.",
+        vat_no: "لا (افتراضيًا)",
+        yes: "نعم"
+      }
+    };
+
+    function applyLang(lang){
+      currentLang = lang;
+      const dict = I18N[lang] || I18N.en;
+
+      document.documentElement.lang = (lang === "ar") ? "ar" : "en";
+      document.documentElement.dir = (lang === "ar") ? "rtl" : "ltr";
+      document.body.classList.toggle("rtl", lang === "ar");
+
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if(dict[key] !== undefined){
+          el.innerHTML = dict[key];
+        }
+      });
+
+      const btn = document.getElementById("langBtn");
+      if(btn){
+        btn.innerHTML = (lang === "ar") ? "<strong>EN</strong> English" : "<strong>AR</strong> العربية";
+      }
+    }
+
+    function toggleLang(){
+      applyLang(currentLang === "en" ? "ar" : "en");
+    }
+
+    window.addEventListener("DOMContentLoaded", () => applyLang("en"));
+
+
+    function setTab(tab){
+      const wrapBtn = document.getElementById('tabWrapBtn');
+      const decalBtn = document.getElementById('tabDecalBtn');
+      const wrapPanel = document.getElementById('tabWrap');
+      const decalPanel = document.getElementById('tabDecal');
+
+      if(tab === 'wrap'){
+        wrapBtn.classList.add('active');
+        decalBtn.classList.remove('active');
+        wrapPanel.classList.add('active');
+        decalPanel.classList.remove('active');
+      } else {
+        decalBtn.classList.add('active');
+        wrapBtn.classList.remove('active');
+        decalPanel.classList.add('active');
+        wrapPanel.classList.remove('active');
+      }
+    }
+
+    function fmtAED(n){
+      try { return "AED " + Number(n).toLocaleString(undefined, {maximumFractionDigits: 0}); }
+      catch(e){ return "AED " + n; }
+    }
+
+    function vatify(subtotal, includeVat){
+      const vatRate = 0.05;
+      if(!includeVat) return { total: subtotal, vat: 0 };
+      const vat = subtotal * vatRate;
+      return { total: subtotal + vat, vat };
+    }
+
+    function makeWhatsAppLink(text){
+      return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+    }
+
+    function buildKV(containerId, rows){
+      const el = document.getElementById(containerId);
+      el.innerHTML = rows.map(r => `
+        <div class="item">
+          <div class="k">${r.k}</div>
+          <div class="v">${r.v}</div>
+        </div>
+      `).join('');
+    }
+
+    // Wrap pricing:
+    // Sedan: (4,800 * 1.20) + 3,500 = 9,260
+    // 4x4: total 15,020 (assume same 20% margin + same labor) => material cost 9,600
+    const WRAP_PRICING = {
+      sedan: { materialCost: 4800, marginPct: 0.20, labor: 3500, displayName: "Sedan" },
+      "4x4": { materialCost: 9600, marginPct: 0.20, labor: 3500, displayName: "4x4 / SUV" }
+    };
+
+    function calculateWrap(){
+      const carType = document.getElementById('wrapCarType').value;
+      const make = (document.getElementById('wrapMake').value || "").trim();
+      const model = (document.getElementById('wrapModel').value || "").trim();
+      const year = (document.getElementById('wrapYear').value || "").trim();
+      const color = (document.getElementById('wrapColor').value || "").trim();
+      const notes = (document.getElementById('wrapNotes').value || "").trim();
+      const includeVat = document.getElementById('wrapVat').value === 'yes';
+
+      const p = WRAP_PRICING[carType];
+      const materialSell = p.materialCost * (1 + p.marginPct);
+      const subtotal = materialSell + p.labor;
+      const v = vatify(subtotal, includeVat);
+
+      const vehicleLine = [year, make, model].filter(Boolean).join(" ").trim() || "N/A";
+      document.getElementById('wrapPriceBig').innerHTML = `${fmtAED(v.total)} <span>/ total ${includeVat ? '(incl. VAT)' : '(excl. VAT)'}</span>`;
+
+      buildKV('wrapKV', [
+        { k: "Service", v: "Printed NAQSH on clear PPF (full wrap)" },
+        { k: "Car Type", v: p.displayName },
+        { k: "Vehicle", v: vehicleLine },
+        { k: "Color", v: color || "N/A" },
+        
+        
+        { k: includeVat ? "VAT (5%)" : "VAT", v: includeVat ? fmtAED(v.vat) : "Excluded" },
+        { k: "Estimated Lead Time", v: "≈ 25 days total (20 ± material + 5 install)" },
+        { k: "Inspection", v: "Required before confirmation" }
+      ]);
+
+      const msg =
+`Hello 1885 × NAQSH Team,
+
+Please share a formal quote for:
+
+SERVICE: Printed NAQSH  on clear PPF film (Full Wrap)
+CAR TYPE: ${p.displayName}
+VEHICLE: ${vehicleLine}
+COLOR: ${color || "N/A"}
+
+ESTIMATED PRICE: ${fmtAED(v.total)} ${includeVat ? "(incl. VAT)" : "(excl. VAT)"}
+Thank you.`;
+
+      document.getElementById('wrapWhatsapp').href = makeWhatsAppLink(msg);
+      document.getElementById('wrapResults').classList.add('active');
+      document.getElementById('wrapResults').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    // Decals pricing: supplier cost 65 AED/m (hidden), apply 20% margin + labor tiers.
+    const DECAL = { supplierCostPerM: 65, marginPct: 0.20 };
+
+    function decalLaborForMeters(m){
+      if (m >= 2 && m <= 3) return 500;
+      if (m > 3 && m <= 6) return 1000;
+      if (m > 6 && m <= 9) return 2000;
+      if (m < 2) return 300;
+      return 2500; // >9m estimate
+    }
+
+    function calculateDecal(){
+      const meters = Number(document.getElementById('decalMeters').value);
+      const make = (document.getElementById('decalMake').value || "").trim();
+      const model = (document.getElementById('decalModel').value || "").trim();
+      const year = (document.getElementById('decalYear').value || "").trim();
+      const color = (document.getElementById('decalColor').value || "").trim();
+      const notes = (document.getElementById('decalNotes').value || "").trim();
+      const includeVat = document.getElementById('decalVat').value === 'yes';
+
+      if(!meters || meters <= 0){
+        alert("Please enter a valid total length in meters.");
+        return;
+      }
+
+      const supplierMaterial = meters * DECAL.supplierCostPerM;        // hidden
+      const materialSell = supplierMaterial * (1 + DECAL.marginPct);   // shown
+      const labor = decalLaborForMeters(meters);
+      const subtotal = materialSell + labor;
+      const v = vatify(subtotal, includeVat);
+
+      const vehicleLine = [year, make, model].filter(Boolean).join(" ").trim() || "N/A";
+      document.getElementById('decalPriceBig').innerHTML = `${fmtAED(v.total)} <span>/ total ${includeVat ? '(incl. VAT)' : '(excl. VAT)'}</span>`;
+
+      const tierNote = (meters > 9)
+        ? "Meterage > 9m: estimate shown, final price subject to design review."
+        : "Labor tier auto-selected based on total meterage.";
+
+      buildKV('decalKV', [
+        { k: "Service", v: "Printed decal / sticker (non-PPF)" },
+        { k: "Vehicle", v: vehicleLine },
+        { k: "Color", v: color || "N/A" },
+        { k: "Total Length", v: meters.toFixed(1) + " m" },
+        
+        
+        { k: includeVat ? "VAT (5%)" : "VAT", v: includeVat ? fmtAED(v.vat) : "Excluded" },
+        { k: "Note", v: tierNote }
+      ]);
+
+      const msg =
+`Hello 1885 × NAQSH Team,
+
+Please share a formal quote for:
+
+SERVICE: Decals / Stickers (Printed) — NOT PPF
+VEHICLE: ${vehicleLine}
+COLOR: ${color || "N/A"}
+TOTAL LENGTH: ${meters.toFixed(1)} m
+
+ESTIMATED PRICE: ${fmtAED(v.total)} ${includeVat ? "(incl. VAT)" : "(excl. VAT)"}
+Thank you.`;
+
+      document.getElementById('decalWhatsapp').href = makeWhatsAppLink(msg);
+      document.getElementById('decalResults').classList.add('active');
+      document.getElementById('decalResults').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  </script>
+</body>
+</html>
