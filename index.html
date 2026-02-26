@@ -6,7 +6,10 @@
   <title>1885 x NAQSH - Calculator</title>
 
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+    
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root{
       --red-primary:#E31E24;
@@ -20,8 +23,6 @@
       --text-gray:#cccccc;
       --border-gold: rgba(212,175,55,0.2);
     }
-
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
     body{
       font-family:'Inter','Cairo',sans-serif;
@@ -166,6 +167,22 @@
       appearance:none;
       -webkit-appearance:none;
     }
+
+    .form-field .static-value{
+      width:100%;
+      padding: 14px 18px;
+      background: rgba(0,0,0,0.35);
+      border: 2px dashed rgba(212,175,55,0.35);
+      border-radius: 10px;
+      color: var(--text-light);
+      font-size: 1rem;
+      line-height: 1.3;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      min-height: 50px;
+    }
+
     .form-field textarea{ min-height: 92px; resize: vertical; }
     .form-field select{
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -250,7 +267,13 @@
       border-radius: 20px;
       padding: 26px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      transition: box-shadow .35s ease, transform .35s ease, background .35s ease;
     }
+
+    .quote-card.calc-success{
+      animation: resultFade .28s ease, highlightFlash .85s ease, glowPulse 1.05s ease-out;
+    }
+
 
     .quote-top{
       display:flex;
@@ -333,6 +356,21 @@
     @keyframes fadeInUp{
       from{ opacity:0; transform: translateY(22px); }
       to{ opacity:1; transform: translateY(0); }
+    }
+
+    /* Result polish: subtle fade, highlight + success glow */
+    @keyframes resultFade{
+      from{ opacity:0; }
+      to{ opacity:1; }
+    }
+    @keyframes highlightFlash{
+      0%{ background: rgba(212,175,55,0.18); }
+      100%{ background: rgba(255,255,255,0.01); }
+    }
+    @keyframes glowPulse{
+      0%{ box-shadow: 0 10px 30px rgba(0,0,0,0.35); transform: translateY(0); }
+      35%{ box-shadow: 0 14px 42px rgba(212,175,55,0.25); transform: translateY(-2px); }
+      100%{ box-shadow: 0 10px 30px rgba(0,0,0,0.35); transform: translateY(0); }
     }
   
     .lang-btn{
@@ -628,7 +666,7 @@
                 </button>
               </div>
               <div class="helper" data-i18n="decal_mode_help">
-                Quick: for stripes / simple runs. Smart: for circles, logos, blocks — we convert dimensions to billable roll meters (with waste + minimum).
+                Quick: for stripes / simple runs. Smart: for circles, logos, blocks — we convert dimensions to billable roll meters (with waste allowance).
               </div>
             </div>
           </div>
@@ -638,20 +676,14 @@
               <label><span data-i18n="total_length">Total Length (meters)</span></label>
               <input type="number" id="decalMeters" min="0" step="0.1" placeholder="e.g. 5.2">
             </div>
+            <div class="form-field">
+              <label><span data-i18n="quantity">Quantity</span></label>
+              <input type="number" id="quickQty" min="1" step="1" value="1">
+            </div>
           </div>
 
           <div class="input-group hidden" id="decalSmartGroup">
-            <div class="form-field">
-              <label><span data-i18n="roll_width">Roll width</span></label>
-              <select id="decalRollWidth">
-                <option value="1.52" selected>152 cm</option>
-                <option value="1.20">120 cm</option>
-                <option value="0.90">90 cm</option>
-                <option value="0.60">60 cm</option>
-              </select>
-            </div>
-
-            <div class="form-field">
+<div class="form-field">
               <label><span data-i18n="shape">Shape</span></label>
               <select id="decalShape" onchange="updateDecalShapeFields()">
                 <option value="rectangle" selected data-i18n="shape_rectangle">Rectangle / Block</option>
@@ -682,11 +714,7 @@
 
             <div class="form-field">
               <label><span data-i18n="waste_allowance">Printing allowance</span></label>
-              <select id="decalWaste">
-                <option value="0.10">10%</option>
-                <option value="0.15" selected>15%</option>
-                <option value="0.20">20%</option>
-              </select>
+              <div class="static-value" id="decalWasteAuto">Auto</div>
             </div>
 
             <div class="form-field" style="grid-column:1/-1;">
@@ -850,7 +878,7 @@
         decal_mode: "Decal pricing mode",
         mode_meters: "Quick (meters)",
         mode_smart: "Smart (dimensions)",
-        decal_mode_help: "Quick: for stripes / simple runs. Smart: for circles, logos, blocks — we convert dimensions to billable roll meters (with waste + minimum).",
+        decal_mode_help: "Quick: for stripes / simple runs. Smart: for circles, logos, blocks — we convert dimensions to billable roll meters (with waste allowance).",
         roll_width: "Roll width",
         shape: "Shape",
         shape_rectangle: "Rectangle / Block",
@@ -1040,7 +1068,28 @@ function toggleLang(){
     
     function showResults(id){
       const el = document.getElementById(id);
-      if(el) el.classList.remove("hidden");
+      if(!el) return;
+
+      // Ensure visible + re-trigger fade-in
+      el.classList.remove("hidden");
+      el.classList.remove("active");
+      // force reflow so CSS animations replay
+      void el.offsetWidth;
+      el.classList.add("active");
+      el.style.display = "block";
+
+      // Success glow on the quote card
+      const card = el.querySelector(".quote-card");
+      if(card){
+        card.classList.remove("calc-success");
+        void card.offsetWidth;
+        card.classList.add("calc-success");
+      }
+
+      // Auto-scroll to results
+      try{
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }catch(e){}
     }
 
 function fmtAED(n){
@@ -1077,18 +1126,25 @@ function fmtAED(n){
       "4x4": { materialCost: 9600, marginPct: 0.20, labor: 3500, displayName: "4x4 / SUV" }
     };
 
-    // Decal (sticker) pricing (internal inputs; not shown as cost)
-    const DECAL_MIN_BILLABLE_METERS = 1.0; // internal minimum charge
-const DECAL_RATE = 65;        // AED per meter (supplier printing + material)
-    const DECAL_MARGIN = 0.20;    // internal margin
-    function decalLaborTier(m){
+    // Decal (sticker) pricing (unified: material sell + install tiers)
+    // Roll width is fixed elsewhere at 1.52m for Smart calculations.
+    // Pricing model:
+    //  - Material sell rate: 85 AED / billable roll meter
+    //  - Install fee (auto by billable meters, after waste):
+    //      <= 3m     : 700 AED
+    //      > 3m–8m   : 750 AED
+    //      > 8m      : 1,100 AED
+    //  - Quick mode (meters) applies a fixed 15% waste.
+    const DECAL_MIN_BILLABLE_METERS = 0.0; // no enforced minimum
+    const DECAL_SELL_RATE = 85;            // AED per billable roll meter (sell)
+    const DECAL_QUICK_WASTE = 0.15;        // Quick meters mode waste
+
+    function decalInstallTier(m){
       const meters = Number(m) || 0;
       if(meters <= 0) return 0;
-      if(meters <= 3) return 500;
-      if(meters <= 6) return 1000;
-      if(meters <= 9) return 2000;
-      // For very large jobs, conservative scaling
-      return 2500 + Math.ceil((meters - 9)) * 200;
+      if(meters <= 3) return 700;
+      if(meters <= 8) return 750;
+      return 1100;
     }
 
 
@@ -1142,13 +1198,40 @@ TOTAL: ${fmtAED(v.total)} ${includeVat ? "(incl. VAT)" : "(excl. VAT)"}
 Thank you.`;
 
       document.getElementById('wrapWhatsapp').href = makeWhatsAppLink(msg);
-      document.getElementById('wrapResults').style.display = 'block';
       showResults("wrapResults");
     }
 
-    function calculateDecal(){
+    function showDecalError(msg){
+  const results = document.getElementById('decalResults');
+  const kv = document.getElementById('decalKV');
+  if(results){
+    results.classList.remove('hidden');
+    results.style.display = 'block';
+  }
+  if(kv){
+    kv.innerHTML = `
+      <div class="item">
+        <div class="k">Error</div>
+        <div class="v">${msg}</div>
+      </div>
+    `;
+  }
+  const anchor = results || kv;
+  if(anchor){
+    try{ anchor.scrollIntoView({behavior:'smooth', block:'start'}); }catch(e){}
+  }
+}
+
+function calculateDecal(){
       const dict = I18N[currentLang] || I18N.en;
 
+      const details = (decalMode === "smart") ? computeDecalSmartDetails() : null;
+
+      // Update UI label for auto waste (smart mode only)
+      const wasteEl = document.getElementById("decalWasteAuto");
+      if(wasteEl){
+        wasteEl.textContent = details ? `Auto (${((details.waste || 0) * 100).toFixed(0)}%)` : "Auto";
+      }
       const meters = computeDecalBillableMeters();
 const make = (document.getElementById('decalMake').value || "").trim();
       const model = (document.getElementById('decalModel').value || "").trim();
@@ -1158,16 +1241,25 @@ const make = (document.getElementById('decalMake').value || "").trim();
       const includeVat = document.getElementById('decalVat').value === 'yes';
 
       const m = isFinite(meters) ? meters : 0;
-const labor = decalLaborTier(m);
-const materialSell = (m * DECAL_RATE) * (1 + DECAL_MARGIN);
-      const subtotal = materialSell + labor;
-      const v = vatify(subtotal, includeVat);
+      if (m <= 0) { showDecalError('Please enter valid measurements/meters.'); return; }
+      const qtySmart = Math.max(1, parseInt((document.getElementById('decalQty')?.value || '1'), 10));
+      const qtyQuick = Math.max(1, parseInt((document.getElementById('quickQty')?.value || '1'), 10));
+      const qtyInput = (decalMode === 'smart') ? qtySmart : qtyQuick;
+      const installBase = decalInstallTier(m);
+      // Extra handling per additional piece (auto). Applied to circle/rectangle in Smart mode, and to Quick mode (no shape context).
+      const extraPieceFee = (decalMode === 'smart')
+        ? ((details && (details.shape === 'circle' || details.shape === 'rectangle')) ? Math.max(0, qtyInput - 1) * 100 : 0)
+        : (Math.max(0, qtyInput - 1) * 100);
+      const install = installBase + extraPieceFee;
+      const materialSell = (m * DECAL_SELL_RATE);
+      let subtotal = materialSell + install;
+const v = vatify(subtotal, includeVat);
 
       
       const modeLine = (decalMode === "smart")
         ? (dict.mode_smart || "Smart (dimensions)")
         : (dict.mode_meters || "Quick (meters)");
-      const billableLine = `${(dict.length_label || "Length")}: ${m.toFixed(2)} m (${dict.recommended_label || "Recommended"})`;
+      const billableLine = `${(dict.billable_roll_meters || "Charged meters (incl. allowance)")}: ${m.toFixed(2)} m (${dict.recommended_label || "Recommended"})`;
 
       const vehicleLine = [year, make, model].filter(Boolean).join(" ").trim() || (dict.na_value || "N/A");
 
@@ -1177,7 +1269,15 @@ const materialSell = (m * DECAL_RATE) * (1 + DECAL_MARGIN);
       buildKV('decalKV', [
         { k: (dict.decal_mode || "Decal mode"), v: modeLine },
         { k: (dict.service_label || "Service"), v: (dict.decal_service_value || "Decals (sticker)") },
-        { k: (dict.length_label || "Length"), v: `${m ? m.toFixed(2) : "0.00"} m` },
+        { k: (dict.billable_roll_meters || "Charged meters (incl. allowance)"), v: `${m ? m.toFixed(2) : "0.00"} m` },
+        { k: (dict.quantity || "Quantity"), v: `${qtyInput}` },
+...(details ? [
+          { k: (dict.total_area || "Total area"), v: `${(details.totalArea || 0).toFixed(2)} m²` },
+          ...(details.shape === "stripe" ? [
+            { k: (dict.requested_linear_meters || "Requested linear meters"), v: `${(Math.max(0, details.heightM) * Math.max(1, details.qty)).toFixed(2)} m` },
+] : []),
+] : []),
+
         { k: (dict.vehicle_label || "Vehicle"), v: vehicleLine },
         { k: (dict.color_label || "Color"), v: color || (dict.na_value || "N/A") },
         { k: (dict.vat || "VAT"), v: includeVat ? fmtAED(v.vat) : (dict.excluded_label || "Excluded") },
@@ -1190,9 +1290,11 @@ const materialSell = (m * DECAL_RATE) * (1 + DECAL_MARGIN);
 Please share a formal quote for:
 
 MODE: ${modeLine}
-BILLABLE: ${m.toFixed(2)} m
+BILLABLE ROLL METERS: ${m.toFixed(2)} m
+${(details ? `TOTAL AREA: ${(details.totalArea || 0).toFixed(2)} m²` : ``)}
+${(details && details.shape === "stripe" ? `REQUESTED LINEAR METERS: ${(Math.max(0, details.heightM) * Math.max(1, details.qty)).toFixed(2)} m` : ``)}
 SERVICE: ${dict.decal_service_value_wa || "Decals (Sticker)"}
-Length: ${m ? m.toFixed(2) : "0.00"} m
+Charged meters (incl. allowance): ${m ? m.toFixed(2) : "0.00"} m
 Vehicle: ${vehicleLine}
 Color: ${color || "N/A"}
 VAT: ${includeVat ? "Included (5%)" : "Excluded"}
@@ -1204,7 +1306,6 @@ TOTAL: ${fmtAED(v.total)} ${includeVat ? "(incl. VAT)" : "(excl. VAT)"}
 Thank you.`;
 
       document.getElementById('decalWhatsapp').href = makeWhatsAppLink(msg);
-      document.getElementById('decalResults').style.display = 'block';
       showResults("decalResults");
     }
 
@@ -1245,38 +1346,97 @@ Thank you.`;
       }
     }
 
-    function computeDecalBillableMeters(){
-      if(decalMode === "meters"){
-        const meters = Number(document.getElementById("decalMeters")?.value) || 0;
-        return Math.max(0, meters);
+    
+    // Decal waste allowance (internal). User does not choose this.
+    // Rationale: protects margin against trimming, alignment, reprints, and roll utilization loss.
+    function getDecalWastePct(shape){
+      switch(String(shape || "").toLowerCase()){
+        case "stripe":    return 0.12; // long strips are predictable
+        case "rectangle": return 0.15; // standard jobs
+        case "circle":    return 0.18; // more cutting/contour waste
+        default:          return 0.18;
       }
+    }
 
-      const rollW = Number(document.getElementById("decalRollWidth")?.value) || 1.52;
+function computeDecalSmartDetails(){
+      const rollW = 1.52; // fixed roll width (meters)
       const shape = (document.getElementById("decalShape")?.value) || "rectangle";
       const qty = Math.max(1, Math.round(Number(document.getElementById("decalQty")?.value) || 1));
       const minMeters = DECAL_MIN_BILLABLE_METERS;
-const waste = Math.max(0, Number(document.getElementById("decalWaste")?.value) || 0);
+      const waste = getDecalWastePct(shape);
 
-      let areaOne = 0; // m2 bounding
-      if(shape === "circle"){
-        const dcm = Number(document.getElementById("decalDiameterCm")?.value) || 0;
-        const dm = dcm / 100.0;
-        areaOne = dm * dm;
+      // Inputs (meters)
+      const wcm = Number(document.getElementById("decalWidthCm")?.value) || 0;
+      const hcm = Number(document.getElementById("decalHeightCm")?.value) || 0;
+      const wm = wcm / 100.0; // treated as width
+      const hm = hcm / 100.0; // treated as length for "stripe", height for rectangles
+
+      // Circle input (meters)
+      const dcm = Number(document.getElementById("decalDiameterCm")?.value) || 0;
+      const dm = dcm / 100.0;
+
+      // Calculations
+      let lanes = 1;         // number of side-by-side lanes required across roll width (stripe only)
+      let areaOne = 0;       // m² per piece (bounding)
+      let totalArea = 0;     // m² for the job (incl. qty, before roll conversion)
+      let rawMeters = 0;     // calculated meters before minimum
+      let billable = 0;      // final billable meters (after minimum)
+
+      if(shape === "stripe"){
+        // Stripe / strip logic: treat "Height (cm)" as the stripe length.
+        // If the stripe width exceeds the roll width, we need multiple lanes.
+        lanes = (rollW > 0) ? Math.max(1, Math.ceil(wm / rollW)) : 1;
+
+        const requestedLinearMeters = Math.max(0, hm) * qty * lanes;
+        rawMeters = requestedLinearMeters * (1 + waste);
+
+        // Area is shown for clarity (based on requested geometry).
+        totalArea = Math.max(0, (wm * hm) * qty) * (1 + waste);
+      }else if(shape === "circle"){
+        // Correct circle area: π × (d/2)²
+        const r = Math.max(0, dm / 2.0);
+        areaOne = Math.PI * r * r;
+        totalArea = areaOne * qty;
+        totalArea = totalArea * (1 + waste);
+
+        rawMeters = (rollW > 0) ? (totalArea / rollW) : 0;
       }else{
-        const wcm = Number(document.getElementById("decalWidthCm")?.value) || 0;
-        const hcm = Number(document.getElementById("decalHeightCm")?.value) || 0;
-        const wm = wcm / 100.0;
-        const hm = hcm / 100.0;
-        areaOne = wm * hm;
+        // Rectangle / block: area-based, then convert to roll meters
+        areaOne = Math.max(0, wm) * Math.max(0, hm);
+        totalArea = areaOne * qty;
+        totalArea = totalArea * (1 + waste);
+
+        rawMeters = (rollW > 0) ? (totalArea / rollW) : 0;
       }
 
-      let totalArea = areaOne * qty;
-      totalArea = totalArea * (1 + waste);
+      billable = Math.max(minMeters, rawMeters);
 
-      const meters = (rollW > 0) ? (totalArea / rollW) : 0;
-      const billable = Math.max(minMeters, meters);
-      return Math.max(0, billable);
+      return {
+        shape,
+        qty,
+        waste,
+        rollW,
+        widthM: wm,
+        heightM: hm,
+        diameterM: dm,
+        lanes,
+        totalArea,
+        rawMeters,
+        billableMeters: Math.max(0, billable)
+      };
     }
+
+    function computeDecalBillableMeters(){
+      if(decalMode === "meters"){
+        const meters = Number(document.getElementById("decalMeters")?.value) || 0;
+        const qty = Math.max(1, Math.round(Number(document.getElementById("quickQty")?.value) || 1));
+        const base = Math.max(0, meters) * qty;
+        // Quick mode applies a fixed waste allowance
+        return base * (1 + DECAL_QUICK_WASTE);
+      }
+      return computeDecalSmartDetails().billableMeters;
+    }
+
 </script>
 </body>
 </html>
